@@ -7,10 +7,10 @@ export async function addGame(req, res) {
     try {
 
         const game = await db.query(`SELECT games.name FROM games WHERE name = $1;`, [name]);
-        if (game) return res.sendStatus(409);
+        if (game.rows[0]) return res.sendStatus(409);
 
         await db.query(`
-                INSERT INTO games (name, image, "stockTotal", "pricePerDay")
+                INSERT INTO games ("name", "image", "stockTotal", "pricePerDay")
                 VALUES ($1, $2, $3, $4);`, [name, image, stockTotal, pricePerDay]);
 
         res.sendStatus(201);
