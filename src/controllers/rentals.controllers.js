@@ -6,12 +6,15 @@ export async function addRentals(req, res) {
 
     try {
         const game = await db.query(`SELECT * FROM games WHERE games.id = $1;`, [gameId]);
-        if (!game.rows[0] || game.rows[0].stockTotal === 0) return res.sendStatus(400);
+        if (!game.rows[0]) return res.sendStatus(400);
 
         const price = game.rows[0].pricePerDay;
 
         const customer = await db.query(`SELECT * FROM customers WHERE customers.id = $1;`, [customerId]);
         if (!customer.rows[0]) return res.sendStatus(400);
+
+        const rental = await db.query(`SELECT * FROM rentals WHERE rentals."gameId" = $1;`, [gameId]);
+        if (rental.rows.length === game.rows[0].stockTotal) return res.sendStatus(400);
 
         const rentDate = dayjs().format("YYYY-MM-DD");
         const returnDate = null;
