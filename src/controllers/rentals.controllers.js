@@ -33,3 +33,43 @@ export async function addRentals(req, res) {
         res.status(500).send(err.message);
     }
 }
+
+export async function listRentals(req, res) {
+
+    try {
+        const resRentals = await db.query(`
+        SELECT rentals.*,
+        customers.id AS c_id,
+        customers.name AS c_name,
+        games.id AS g_id,
+        games.name AS g_name
+        FROM rentals 
+        JOIN customers ON rentals."customerId" = customers.id
+        JOIN games ON rentals."gameId" = games.id;`);
+
+        const rentals = resRentals.rows.map(r =>
+        ({
+            id: r.id,
+            customerId: r.customerId,
+            gameId: r.gameId,
+            rentDate: dayjs(r.rentDate).format("YYYY-MM-DD"),
+            daysRented: r.daysRented,
+            returnDate: r.returnDate,
+            originalPrice: r.originalPrice,
+            delayFee: r.delayFee,
+            customer: {
+                id: r.c_id,
+                name: r.c_name
+            },
+            game: {
+                id: r.g_id,
+                name: r.g_name
+            }
+        }));
+
+        res.status(200).send(rentals);
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
