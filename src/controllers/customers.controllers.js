@@ -50,3 +50,28 @@ export async function getCustomersById(req, res) {
         res.status(500).send(err.message);
     }
 }
+
+export async function editCustomer(req, res) {
+    const { id } = req.params;
+    const { name, phone, cpf, birthday } = req.body;
+
+    try {
+        const existCustomer = await db.query(`SELECT * FROM customers WHERE customers.id = $1;`, [id]);
+        if (!existCustomer.rows[0]) return res.sendStatus(404);
+
+        const sameCpf = await db.query(`SELECT customers.cpf
+        FROM customers WHERE (customers.id != $1 AND customers.cpf = $2);`, [id, cpf]);
+        console.log(sameCpf.rows[0]);
+        if (sameCpf.rows[0]) return res.sendStatus(409);
+
+
+        await db.query(`UPDATE customers
+        SET name=$1, phone=$2, cpf=$3, birthday=$4
+        WHERE customers.id = $5;`, [name, phone, cpf, birthday, id]);
+
+        res.sendStatus(200);
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
