@@ -6,7 +6,6 @@ export async function addCustomer(req, res) {
     const { name, phone, cpf, birthday } = req.body;
 
     try {
-
         const customer = await db.query(`SELECT customers.cpf FROM customers WHERE cpf = $1;`, [cpf]);
         if (customer.rows[0]) return res.sendStatus(409);
 
@@ -22,14 +21,13 @@ export async function addCustomer(req, res) {
 }
 
 export async function getCustomers(req, res) {
+
     try {
-        const customers = await db.query(`SELECT * FROM customers;`);
+        const resCustomers = await db.query(`SELECT * FROM customers;`);
 
-        console.log(customers.rows);
-        const fixDate = customers.rows.map(c => ({ ...c, birthday: dayjs(c.birthday).format("YYYY-MM-DD") }));
-        console.log(fixDate);
+        const customers = resCustomers.rows.map(c => ({ ...c, birthday: dayjs(c.birthday).format("YYYY-MM-DD") }));
 
-        res.send(fixDate).status(200);
+        res.send(customers).status(200);
     } catch (err) {
         res.status(500).send(err.message);
     }
@@ -39,11 +37,10 @@ export async function getCustomersById(req, res) {
     const { id } = req.params;
 
     try {
-
         const resCustomer = await db.query(`SELECT * FROM customers WHERE customers.id = $1;`
             , [id]);
 
-        if (!resCustomer.rows[0]) return res.sendStatus(409);
+        if (!resCustomer.rows[0]) return res.sendStatus(404);
 
         const customer = { ...resCustomer.rows[0], birthday: dayjs(resCustomer.rows[0].birthday).format("YYYY-MM-DD") };
 
