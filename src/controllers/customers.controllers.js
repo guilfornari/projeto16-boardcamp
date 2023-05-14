@@ -24,8 +24,12 @@ export async function addCustomer(req, res) {
 export async function getCustomers(req, res) {
     try {
         const customers = await db.query(`SELECT * FROM customers;`);
-        console.table(customers.rows);
-        res.send(customers.rows).status(200);
+
+        console.log(customers.rows);
+        const fixDate = customers.rows.map(c => ({ ...c, birthday: dayjs(c.birthday).format("YYYY-MM-DD") }));
+        console.log(fixDate);
+
+        res.send(fixDate).status(200);
     } catch (err) {
         res.status(500).send(err.message);
     }
@@ -35,12 +39,13 @@ export async function getCustomersById(req, res) {
     const { id } = req.params;
 
     try {
-        const resCustomers = await db.query(`SELECT * FROM customers WHERE customers.id = $1;`
+
+        const resCustomer = await db.query(`SELECT * FROM customers WHERE customers.id = $1;`
             , [id]);
 
-        console.log(resCustomers.rows[0]);
+        if (!resCustomer.rows[0]) return res.sendStatus(409);
 
-        const customer = { ...resCustomers.rows[0], birthday: dayjs(resCustomers.birthday).format("YYYY-MM-DD") };
+        const customer = { ...resCustomer.rows[0], birthday: dayjs(resCustomer.rows[0].birthday).format("YYYY-MM-DD") };
 
         res.send(customer).status(200);
 
