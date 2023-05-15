@@ -73,3 +73,49 @@ export async function listRentals(req, res) {
         res.status(500).send(err.message);
     }
 }
+
+export async function returnRental(req, res) {
+    const { id } = req.params;
+    try {
+
+        const rental = await db.query(`SELECT * FROM rentals WHERE rentals.id = $1;`, [id]);
+        if (!rental.rows[0]) return res.sendStatus(404);
+
+        const returnDate = dayjs().format("YYYY-MM-DD");
+        const startDate = dayjs(rental.rows[0].rentDate).format("YYYY-MM-DD");
+
+        console.log(startDate, returnDate);
+
+        // await db.query(`UPDATE rentals
+        // SET "returnDate" = $1,
+        // "delayFee" = $2,
+
+        // WHERE rentals.id = $5;`, [returnDate, delayFee, id])
+
+        res.sendStatus(200);
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
+export async function deleteRental(req, res) {
+    const { id } = req.params;
+    try {
+
+        const rental = await db.query(`SELECT * FROM rentals WHERE rentals.id = $1;`, [id]);
+        if (!rental.rows[0]) return res.sendStatus(404);
+        if (rental.rows[0].returnDate !== null) return res.sendStatus(400);
+
+        await db.query(`DELETE FROM rentals
+        WHERE rentals.id = $1;`, [id]);
+
+        res.sendStatus(200);
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
+
+
